@@ -1,0 +1,232 @@
+.my-overlay {
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 10000 !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: fixed !important;
+    background-color: rgba(0,0,0,0.9) !important;
+    cursor: pointer !important;
+    visibility: visible !important;
+    transition: visibility 0s, opacity 0.4s linear !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: wait !important;
+}
+
+#coin {
+    position: relative;
+    margin: 0 auto;
+    width: 150px;
+    height: 150px;
+}
+
+#coin div {
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+            border-radius: 50%;
+    -webkit-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+        -moz-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+            box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+}
+
+.side-a {
+    background-image: url("/assets/images/heads.png");
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-size: cover; /* Resize the background image to cover the entire container */
+}
+.side-b {
+    background-image: url("/assets/images/tails.png");
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-position: center; /* Center the image */
+    background-size: cover; /* Resize the background image to cover the entire container */
+}
+
+#coin { 
+    transition: -webkit-transform 1s ease-in;
+    -webkit-transform-style: preserve-3d;
+}
+#coin div {
+    position: absolute;
+    -webkit-backface-visibility: hidden;
+}
+.side-a {
+    z-index: 100;
+}
+.side-b {
+    -webkit-transform: rotateY(-180deg);
+
+}
+
+#coin.heads {
+    -webkit-animation: flipHeads 2s ease-out forwards;
+    -moz-animation: flipHeads 2s ease-out forwards;
+        -o-animation: flipHeads 2s ease-out forwards;
+            animation: flipHeads 2s ease-out forwards;
+}
+#coin.tails {
+    -webkit-animation: flipTails 2s ease-out forwards;
+    -moz-animation: flipTails 2s ease-out forwards;
+        -o-animation: flipTails 2s ease-out forwards;
+            animation: flipTails 2s ease-out forwards;
+}
+#coin.startflipping {
+    -webkit-animation: flipCoin 3s ease-in forwards;
+    -moz-animation: flipCoin 3s ease-in forwards;
+        -o-animation: flipCoin 3s ease-in forwards;
+            animation: flipCoin 3s ease-in forwards;
+}
+#coin.flipping {
+    -webkit-animation: flipCoin 2s infinite linear;
+    -moz-animation: flipCoin 2s infinite linear;
+        -o-animation: flipCoin 2s infinite linear;
+            animation: flipCoin 2s infinite linear;
+}
+
+@-webkit-keyframes flipHeads {
+    from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+    to { -webkit-transform: rotateY(1800deg); -moz-transform: rotateY(1800deg); transform: rotateY(1800deg); }
+}
+@-webkit-keyframes flipTails {
+    from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+    to { -webkit-transform: rotateY(1980deg); -moz-transform: rotateY(1980deg); transform: rotateY(1980deg); }
+}
+@-webkit-keyframes flipCoin {
+    from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+    to { -webkit-transform: rotateY(3600deg); -moz-transform: rotateY(3600deg); transform: rotateY(3600deg); }
+}
+
+#minicoin {
+    margin-top: 0em;
+    margin-left: auto;
+    margin-bottom: 2em;
+    width: 18em;
+    height: 18em;
+    cursor: pointer;
+    transition: -webkit-transform 0.5s ease-in;
+    -webkit-transform-style: preserve-3d;
+}
+
+#minicoin div {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+            border-radius: 50%;
+    -webkit-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+        -moz-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+            box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+    -webkit-backface-visibility: hidden;
+}
+
+#minicoin.heads {
+    -webkit-animation: flipMiniHeads 0.5s ease-out forwards;
+    -moz-animation: flipMiniHeads 0.5s ease-out forwards;
+    -o-animation: flipMiniHeads 0.5s ease-out forwards;
+        animation: flipMiniHeads 0.5s ease-out forwards;
+}
+#minicoin.tails {
+    -webkit-animation: flipMiniTails 0.5s ease-out forwards;
+    -moz-animation: flipMiniTails 0.5s ease-out forwards;
+    -o-animation: flipMiniTails 0.5s ease-out forwards;
+        animation: flipMiniTails 0.5s ease-out forwards;
+}
+
+@-webkit-keyframes flipMiniHeads {
+    from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+    to { -webkit-transform: rotateY(180deg); -moz-transform: rotateY(180deg); transform: rotateY(180deg); }
+}
+@-webkit-keyframes flipMiniTails {
+    from { -webkit-transform: rotateY(180deg); -moz-transform: rotateY(180deg); transform: rotateY(180deg); }
+    to { -webkit-transform: rotateY(0deg); -moz-transform: rotateY(0deg); transform: rotateY(0deg); }
+}
+
+
+
+  
+#bet_container {
+    position: relative;
+    margin: 0 auto;
+    padding-top: 1em;
+    padding-bottom: 2em;
+    width: 300px;
+  }
+
+
+.betcontainer3 {
+
+    border: 2px solid #dedede;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 1em;
+
+}
+
+.betcontainer3 div.title {
+    height: 2.4em;
+    margin: auto;
+    border-radius: .5em;
+    margin-bottom: .5em;;
+}
+.betcontainer3 div.title .left {
+    display: inline-block;
+    overflow:hidden;
+    font-weight: bold;
+    padding-left: .8em;
+    position: relative;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    top: 20%;
+}
+
+.betcontainer3 div.title .right {
+    float:right;
+}
+
+.betcontainer3 div.text{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.betcontainer3 div.text img{
+    width: 2em;
+    border-radius: 50%; 
+    background-color: rgb(77, 165, 236);
+    margin-left: .35em;
+    margin-right: .35em;
+}
+
+
+
+  /* Darker chat container */
+  .even {
+    border: 2px solid #ccc;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px auto;
+    background-color: #ddd;
+  }
+    
+  /* Style time text */
+  .time-right {
+    float: right;
+    color: #aaa;
+  }
+  
+  /* Style time text */
+  .time-left {
+    float: left;
+    color: #999;
+  } 
+  
+
+
+  

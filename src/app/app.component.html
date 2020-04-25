@@ -31,7 +31,7 @@
   <div *ngIf="betService.bets.length">
 
     <h2>Bets {{betService.bets.length}}</h2>
-    <div *ngFor="let bet of betService.bets" class="betcontainer3" [ngClass]="{ odd: odd, even: even }">
+    <div *ngFor="let bet of betService.bets" class="betcontainer3">
 
       <div class="title" [ngStyle]="{ 'background-color': colorFromAddr(bet.addr, 0.3)}">
         <span class="left">{{ bet.addr }}</span>

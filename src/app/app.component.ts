@@ -16,7 +16,7 @@ export class AppComponent implements OnInit, OnDestroy {
   bet = "tails";
   subscription: Subscription;
 
-  constructor(private web3Service: Web3Service, private dc: ChangeDetectorRef, private betService: BetService) { }
+  constructor(public web3Service: Web3Service, private dc: ChangeDetectorRef, public betService: BetService) { }
 
   ngOnInit(): void {
     this.subscription = this.betService.dirty.subscribe(() => {

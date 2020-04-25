@@ -7,7 +7,7 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0x73f9c5D77A97ecE62Ec1544eC7E2C505c4482cC9';
+const CASINO_CONTRACT_ADDR = '0x984c37d8a3484Bbd52fa96A8AE1102b170f4CcA4';
 
 
 @Injectable({
@@ -15,7 +15,7 @@ const CASINO_CONTRACT_ADDR = '0x73f9c5D77A97ecE62Ec1544eC7E2C505c4482cC9';
 })
 export class BetService {
   private _contract: any;
-  private bets: Bet[] = [];
+  public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
   constructor(private web3Service: Web3Service) {

@@ -80,12 +80,6 @@
         -o-animation: flipCoin 3s ease-in forwards;
             animation: flipCoin 3s ease-in forwards;
 }
-#coin.flipping {
-    -webkit-animation: flipCoin 2s infinite linear;
-    -moz-animation: flipCoin 2s infinite linear;
-        -o-animation: flipCoin 2s infinite linear;
-            animation: flipCoin 2s infinite linear;
-}
 
 @-webkit-keyframes flipHeads {
     from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
@@ -169,7 +163,6 @@
 }
 
 .betcontainer3 div.betcontainer3-coin {
-    width: 200px;
     float: left;
     padding-top: 0.75em;
     padding-left: 0.5em;
@@ -270,3 +263,9 @@
         animation: flipMiniTails 0.5s ease-out forwards;
 }
   
+#minicoin-bet.flipping {
+    -webkit-animation: flipCoin 4s infinite linear;
+    -moz-animation: flipCoin 4s infinite linear;
+        -o-animation: flipCoin 4s infinite linear;
+            animation: flipCoin 4s infinite linear;
+}

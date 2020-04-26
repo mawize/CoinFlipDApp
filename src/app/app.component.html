@@ -36,9 +36,11 @@
 
     <h2>Bets {{betService.bets.length}}</h2>
     <div *ngFor="let bet of betService.bets" class="betcontainer3">
-      <div id="minicoin-bet" class="betcontainer3-coin">
-        <div *ngIf="bet.state == 1" class="side-a"></div>
-        <div *ngIf="bet.state == 1" class="side-b"></div>
+      <div class="betcontainer3-coin">
+        <div *ngIf="bet.state == 1" id="minicoin-bet" [ngClass]="{'flipping': bet.state == 1}">
+          <div class="side-a"></div>
+          <div class="side-b"></div>
+        </div>
         <div *ngIf="bet.state != 1"><img src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png"
             title="{{ bet.heads ? 'heads' : 'tails'}}"></div>
 

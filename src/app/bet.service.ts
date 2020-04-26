@@ -7,22 +7,20 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0x984c37d8a3484Bbd52fa96A8AE1102b170f4CcA4';
+const CASINO_CONTRACT_ADDR = '0xEc2E5a8619307fE9aB1F57547b9FBe7aB2DAC253';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class BetService {
-  private _contract: any;
+
   public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
   constructor(private web3Service: Web3Service) {
-    this._contract = this.getCasino();
-
     console.log("Register for casino.GameCreated event ...");
-    this._contract.events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
+    this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
       .on('data', (e) => {
         console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
         const b = new Bet(e.returnValues[0]);
@@ -31,11 +29,16 @@ export class BetService {
       });
   }
 
+  public getContractAddress() {
+    return CASINO_CONTRACT_ADDR;
+  }
+
   public createBet(betvalue, heads) {
     console.log("Creating CoinFlip Bet with " + betvalue + " wei ...");
+    const contract = this.getCasino();
     const config = this.web3Service.etherConfig(betvalue);
-    const sent = this._contract.methods.createCoinFlip(heads).send(config);
-    return this.handleBeforeReturn(sent, this._contract, "createCoinFlip")
+    const sent = contract.methods.createCoinFlip(heads).send(config);
+    return this.handleBeforeReturn(sent, contract, "createCoinFlip")
       .catch((err) => {
         console.warn("Error placing bet: ");
         console.warn(err);

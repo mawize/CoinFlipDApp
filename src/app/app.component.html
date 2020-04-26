@@ -2,6 +2,7 @@
   <div class="my-overlay" *ngIf="web3Service.network == 'loading'">
   </div>
   <div class="container">
+    <h3>{{ betService.getContractAddress() }}</h3>
     <h1 class="display-4">CoinFlipper DApp</h1>
     <h2 *ngIf="web3Service.account">Flip the coin ...</h2>
     <p class="lead" *ngIf="web3Service.account">

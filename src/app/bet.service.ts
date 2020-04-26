@@ -7,7 +7,7 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0xEc2E5a8619307fE9aB1F57547b9FBe7aB2DAC253';
+const CASINO_CONTRACT_ADDR = '0xD73789a6AfB6A4187EF2FB962F39B198d7e485eD';
 
 
 @Injectable({
@@ -19,14 +19,18 @@ export class BetService {
   dirty: Subject<void> = new Subject();
 
   constructor(private web3Service: Web3Service) {
-    console.log("Register for casino.GameCreated event ...");
-    this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
-      .on('data', (e) => {
-        console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
-        const b = new Bet(e.returnValues[0]);
-        this.betCreated(b);
-        this.dirty.next();
-      });
+    web3Service.dirty.subscribe(() => {
+      if (web3Service.network != 'disconnected') {
+        console.log("Register for casino.GameCreated event ...");
+        this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
+          .on('data', (e) => {
+            console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
+            const b = new Bet(e.returnValues[0]);
+            this.betCreated(b);
+            this.dirty.next();
+          });
+      }
+    });
   }
 
   public getContractAddress() {

@@ -4,7 +4,10 @@
   </div>
   <div class="overlay"
     *ngIf="web3Service.network != 'loading' && web3Service.network != '3' && web3Service.network != '5777'">
-    <p>Only available on ropsten network! Please change network in metamask.</p>
+    <p *ngIf="web3Service.network == 'disconnected'">Please use a browser like Brave or MetaMask plugin for
+      Chrome/Firefox.</p>
+    <p *ngIf="web3Service.network != 'disconnected'">Only available on ropsten network! Please change network in
+      metamask.</p>
   </div>
   <div class="container">
     <h4><a href="https://ropsten.etherscan.io/address/{{ betService.getContractAddress() }}"

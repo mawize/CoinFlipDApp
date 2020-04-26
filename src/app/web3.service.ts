@@ -41,6 +41,8 @@ export class Web3Service {
       console.error(
         'Please use a browser like Brave or MetaMask plugin for Chrome/Firefox'
       );
+      this.updateNetwork('disconnected');
+      this.updateAccount(undefined);
     }
   }
 
@@ -89,7 +91,7 @@ export class Web3Service {
     if (accounts != undefined && typeof accounts[0] != undefined) {
       this.account = accounts[0];
       console.log("Account changed: " + this.account);
-      (this._web3).eth.getBalance(this.account).then(data => {
+      this._web3.eth.getBalance(this.account).then(data => {
         this.accountBalance = this.toEther(data);
         this.dirty.next();
       })

@@ -15,11 +15,15 @@ export class AppComponent implements OnInit, OnDestroy {
   betinputvalue = "";
   bet = "tails";
   subscription: Subscription;
+  subscription2: Subscription;
 
   constructor(public web3Service: Web3Service, private dc: ChangeDetectorRef, public betService: BetService) { }
 
   ngOnInit(): void {
     this.subscription = this.betService.dirty.subscribe(() => {
+      this.dc.detectChanges();
+    })
+    this.subscription2 = this.web3Service.dirty.subscribe(() => {
       this.dc.detectChanges();
     })
   }
@@ -34,6 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.subscription2.unsubscribe();
   }
 
   minicoinClicked(e) {

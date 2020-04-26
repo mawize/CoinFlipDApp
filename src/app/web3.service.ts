@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, Subject } from 'rxjs';
 const Web3 = require('web3'); // tslint:disable-line
 
 declare let require: any;
@@ -13,7 +13,10 @@ export class Web3Service {
   private _provider: any;
 
   public account = undefined;
+  public accountBalance = undefined;
   public network = undefined;
+
+  dirty: Subject<void> = new Subject();
 
   constructor() {
     if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
@@ -83,10 +86,16 @@ export class Web3Service {
   private updateAccount(accounts) {
     if (accounts != undefined && typeof accounts[0] != undefined) {
       this.account = accounts[0];
+      console.log("Account changed: " + this.account);
+      (this._web3).eth.getBalance(this.account).then(data => {
+        this.accountBalance = this.toEther(data);
+        this.dirty.next();
+      })
+        .catch(e => console.warn('getBalance() for ' + this.account));
     } else {
       this.account = undefined;
+      console.warn("Account disconnected");
     }
-    console.log("Account changed: " + this.account);
   }
 
   private updateNetwork(network: any) {

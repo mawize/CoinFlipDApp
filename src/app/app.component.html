@@ -8,11 +8,12 @@
           style="width: 1em; margin-bottom: 0.25em;"></a></h4>
     <h1 class="display-4">CoinFlipper DApp</h1>
     <h2 *ngIf="web3Service.account">Flip the coin ...</h2>
-    <p class="lead" *ngIf="web3Service.account">
+    <div *ngIf="web3Service.account" style="text-align: right;">
+      <p class="lead">{{ web3Service.accountBalance }} Ether</p>
       <img src="https://robohash.org/{{ web3Service.account.toLowerCase() }}" width="150"
         title="{{ web3Service.account }}" style="float: right; border-radius: 50%;"
         [ngStyle]="{ 'background-color': colorFromAddr(web3Service.account.toLowerCase(), 0.3)}">
-    </p>
+    </div>
     <button type="button" id="connect" class="btn btn-success" (click)="connect($event)"
       *ngIf="!web3Service.account && web3Service.network != 'loading'">Connect!</button>
   </div>
@@ -27,8 +28,8 @@
       <input [(ngModel)]="betinputvalue" type="number" class="form-control" id="betinputvalue"
         placeholder="I love ether!" (change)="valuechanged($event)">
       <span class="input-group-btn">
-        <button type="button" id="flip_button" class="btn btn-primary"
-          (click)="flipButtonClicked($event)">Flip!</button>
+        <button type="button" id="flip_button" class="btn btn-primary" (click)="flipButtonClicked($event)">Create
+          Bet</button>
       </span>
     </div>
   </div>
@@ -91,7 +92,7 @@
           canceled by <img src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
             [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}">
         </div>
-        <div class="time-right">{{ bet.amount }} Ether</div>
+        <div class="time-right">Contract Balance: {{ bet.balance }} Ether</div>
       </div>
       <!--
       <div>

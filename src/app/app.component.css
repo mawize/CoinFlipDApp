@@ -168,34 +168,45 @@
 
 }
 
-.betcontainer3 div.title {
+.betcontainer3 div.betcontainer3-coin {
+    width: 200px;
+    float: left;
+    padding-top: 0.75em;
+    padding-left: 0.5em;
+    margin-right: 1.5em;
+}
+
+.betcontainer3 div.betcontainer3-coin img {
+    width: 4em;
+}
+
+.betcontainer3 div.betcontainer3-details div.title {
     height: 2.4em;
     margin: auto;
     border-radius: .5em;
     margin-bottom: .5em;;
 }
-.betcontainer3 div.title .left {
+.betcontainer3 div.betcontainer3-details div.title .left {
     display: inline-block;
-    overflow:hidden;
+    overflow: hidden;
     font-weight: bold;
-    padding-left: .8em;
     position: relative;
     text-overflow:ellipsis;
     white-space:nowrap;
     top: 20%;
 }
 
-.betcontainer3 div.title .right {
+.betcontainer3 div.betcontainer3-details div.title .right {
     float:right;
 }
 
-.betcontainer3 div.text{
+.betcontainer3 div.betcontainer3-details div.text{
     display: flex;
     justify-content: flex-start;
     align-items: flex-end;
 }
 
-.betcontainer3 div.text img{
+.betcontainer3 div.betcontainer3-details div.text img{
     width: 2em;
     border-radius: 50%; 
     background-color: rgb(77, 165, 236);
@@ -219,14 +230,43 @@
   .time-right {
     float: right;
     color: #aaa;
+    margin-top: -1.5em;
+    margin-right: 0.3em;
   }
   
-  /* Style time text */
-  .time-left {
-    float: left;
-    color: #999;
-  } 
-  
+  #minicoin-bet {
+    margin-top: 0em;
+    margin-left: auto;
+    margin-bottom: 2em;
+    width: 4em;
+    height: 4em;
+    transition: -webkit-transform 0.5s ease-in;
+    -webkit-transform-style: preserve-3d;
+}
 
+  #minicoin-bet div {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+            border-radius: 50%;
+    -webkit-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+        -moz-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+            box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+    -webkit-backface-visibility: hidden;
+}
 
+#minicoin-bet.heads {
+    -webkit-animation: flipMiniHeads 0.5s ease-out forwards;
+    -moz-animation: flipMiniHeads 0.5s ease-out forwards;
+    -o-animation: flipMiniHeads 0.5s ease-out forwards;
+        animation: flipMiniHeads 0.5s ease-out forwards;
+}
+#minicoin-bet.tails {
+    -webkit-animation: flipMiniTails 0.5s ease-out forwards;
+    -moz-animation: flipMiniTails 0.5s ease-out forwards;
+    -o-animation: flipMiniTails 0.5s ease-out forwards;
+        animation: flipMiniTails 0.5s ease-out forwards;
+}
   

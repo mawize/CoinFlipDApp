@@ -1,5 +1,10 @@
 <div class="jumbotron jumbotron-fluid">
-  <div class="my-overlay" *ngIf="web3Service.network == 'loading'">
+  <div class="overlay loading" *ngIf="web3Service.network == 'loading'">
+    <p>Network is loading ...</p>
+  </div>
+  <div class="overlay"
+    *ngIf="web3Service.network != 'loading' && web3Service.network != '3' && web3Service.network != '5777'">
+    <p>Only available on ropsten network! Please change network in metamask.</p>
   </div>
   <div class="container">
     <h4><a href="https://ropsten.etherscan.io/address/{{ betService.getContractAddress() }}"

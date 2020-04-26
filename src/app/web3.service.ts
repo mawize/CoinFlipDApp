@@ -27,6 +27,7 @@ export class Web3Service {
         this._provider.autoRefreshOnNetworkChange = false;
         this._provider.on('accountsChanged', (accounts) => this.updateAccount(accounts));
         this._provider.on('networkChanged', (network) => this.updateNetwork(network));
+        this.updateNetwork(this._provider.networkVersion);
       }
 
       this._web3 = new Web3(this._provider);
@@ -34,10 +35,10 @@ export class Web3Service {
         .then(() => {
           console.log('Web3 is connected.');
         })
-        .catch(e => console.warn('eth.net.isListening()'));
+        .catch(e => console.error('eth.net.isListening()'));
 
     } else {
-      console.warn(
+      console.error(
         'Please use a browser like Brave or MetaMask plugin for Chrome/Firefox'
       );
     }
@@ -47,7 +48,8 @@ export class Web3Service {
     return this._provider.enable().then(accounts => {
       this.updateAccount(accounts);
     })
-      .catch(e => console.warn('provider.enable()'));
+      .catch(e => console.error('provider.enable()'));
+
   }
 
   public toEther(weiamount) {

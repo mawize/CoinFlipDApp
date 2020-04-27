@@ -7,7 +7,7 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0xD632C0F212180C648f5A4656EAd611C646a04a8a';
+const CASINO_CONTRACT_ADDR = '0xCf6e288c65a5e87dC76958077D81323A4876738b';
 
 
 @Injectable({

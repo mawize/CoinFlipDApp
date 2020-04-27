@@ -101,7 +101,7 @@
           canceled by <img src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
             [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}">
         </div>
-        <div class="time-right">Contract Balance: {{ bet.balance }} Ether</div>
+        <div class="time-right">{{ bet.state > 0 ? bet.value : bet.balance }} Ether</div>
       </div>
       <!--
       <div>

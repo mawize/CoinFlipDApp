@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Web3Service } from './web3.service';
 import { Bet } from './bet';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 declare let require: any;
 
@@ -18,19 +18,29 @@ export class BetService {
   public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
+  subscription: Subscription;
+
   constructor(private web3Service: Web3Service) {
-    web3Service.dirty.subscribe(() => {
+    this.subscription = web3Service.dirty.subscribe(() => {
+
       if (web3Service.network != 'disconnected') {
-        console.log("Register for casino.GameCreated event ...");
-        this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
-          .on('data', (e) => {
+      }
+    });
+
+    console.log("REGISTER: for casino.GameCreated event ...");
+    this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
+      .on('data', (e) => {
+        web3Service.getContractData(e.returnValues[0]).then(code => {
+          if (code !== '0x') {
             console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
             const b = new Bet(e.returnValues[0]);
             this.betCreated(b);
             this.dirty.next();
-          });
-      }
-    });
+          } else {
+            console.log("EVENT: casino.GameCreated - DESTROYED bet found at " + e.returnValues[0]);
+          }
+        })
+      });
   }
 
   public getContractAddress() {
@@ -52,11 +62,11 @@ export class BetService {
   private betCreated(b: Bet) {
     if (this.bets.find(i => i.addr === b.addr))
       this.bets = this.bets.filter(function (obj) {
-        return obj.addr !== b.addr;
+        return obj.state !== '5' && obj.addr !== b.addr;
       });
     this.bets.unshift(b);
 
-    console.log("Register for coinflip.StateChanged event for " + b.addr + " ...");
+    console.log("REGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
     const c = this.getCoinFlip(b.addr);
     c.events.StateChanged({ fromBlock: 0, toBlock: 'latest' })
       .on('data', (e) => {
@@ -81,13 +91,14 @@ export class BetService {
   private handleBeforeReturn(sent: any, contract, name) {
     return sent
       .on("transactionHash", (hash) => {
-        console.log(contract._address + "." + name + " -> " + hash);
+        console.log("ACTION: " + contract._address + "." + name + " -> " + hash);
       })
       .on("confirmation", (confirmationNr) => {
-        console.log(contract._address + "." + name + " -> Confirm " + confirmationNr);
+        console.log("ACTION: " + contract._address + "." + name + " -> Confirm " + confirmationNr);
+        this.web3Service.updateBalance();
       })
       .on("receipt", async (receipt) => {
-        console.log(contract._address + "." + name + " -> Receipt");
+        console.log("ACTION: " + contract._address + "." + name + " -> Receipt");
         console.log(receipt);
       });
   }

@@ -19,6 +19,11 @@
     cursor: wait !important;
 }
 
+.container h4 a {
+    color: black;        
+}
+
+
 #coin {
     position: relative;
     margin: 0 auto;
@@ -191,6 +196,10 @@
     text-overflow:ellipsis;
     white-space:nowrap;
     top: 20%;
+}
+.betcontainer3 div.betcontainer3-details div.title .left a {
+    color: black;
+
 }
 
 .betcontainer3 div.betcontainer3-details div.title .right {

@@ -35,31 +35,29 @@ export class Web3Service {
         .then(() => {
           console.log('Web3 is connected.');
         })
-        .catch(e => console.error('eth.net.isListening()'));
+        .catch(e => this.onError('eth.net.isListening()'));
 
     } else {
-      console.error(
-        'Please use a browser like Brave or MetaMask plugin for Chrome/Firefox'
-      );
-      this.updateNetwork('disconnected');
-      this.updateAccount(undefined);
+      this.onError('Please use a browser like Brave or MetaMask plugin for Chrome/Firefox');
     }
+  }
+
+  private onError(msg) {
+    console.error(msg);
+    this.updateNetwork('disconnected');
+    this.updateAccount(undefined);
   }
 
   public connect() {
     return this._provider.enable().then(accounts => {
       this.updateAccount(accounts);
     })
-      .catch(e => console.error('provider.enable()'));
+      .catch(e => this.onError('provider.enable()'));
 
   }
 
   public toEther(weiamount) {
     return Web3.utils.fromWei(weiamount, "ether")
-  }
-
-  public getBlockNumber(): Observable<any> {
-    return from(this._web3.eth.getBlockNumber());
   }
 
   public defaultConfig() {
@@ -83,27 +81,41 @@ export class Web3Service {
   }
 
   public getContract(addr, artefact): any {
-    console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
-    return new (this._web3).eth.Contract(artefact.abi, addr, this.defaultConfig());
+    //console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
+    if (this.getContractData(addr) === '0x')
+      console.error("Cannot get contract '" + artefact.contractName + "' from '" + addr + "'");
+    else
+      return new this._web3.eth.Contract(artefact.abi, addr, this.defaultConfig());
+  }
+
+  public getContractData(addr) {
+    return this._web3.eth.getCode(addr);
   }
 
   private updateAccount(accounts) {
     if (accounts != undefined && typeof accounts[0] != undefined) {
       this.account = accounts[0];
       console.log("Account changed: " + this.account);
-      this._web3.eth.getBalance(this.account).then(data => {
-        this.accountBalance = this.toEther(data);
-        this.dirty.next();
-      })
-        .catch(e => console.warn('getBalance() for ' + this.account));
+      this.updateBalance();
     } else {
       this.account = undefined;
       console.warn("Account disconnected");
     }
+    this.dirty.next();
   }
 
   private updateNetwork(network: any) {
     this.network = network;
     console.log("Network changed: " + this.network);
+    this.dirty.next();
+  }
+
+  public updateBalance() {
+    this._web3.eth.getBalance(this.account).then(data => {
+      this.accountBalance = this.toEther(data);
+      console.log("Balance updated: " + this.accountBalance);
+      this.dirty.next();
+    })
+      .catch(e => this.onError('getBalance() for ' + this.account));
   }
 }

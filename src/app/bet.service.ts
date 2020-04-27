@@ -7,7 +7,7 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0xD73789a6AfB6A4187EF2FB962F39B198d7e485eD';
+const CASINO_CONTRACT_ADDR = '0xD632C0F212180C648f5A4656EAd611C646a04a8a';
 
 
 @Injectable({
@@ -50,6 +50,10 @@ export class BetService {
   }
 
   private betCreated(b: Bet) {
+    if (this.bets.find(i => i.addr === b.addr))
+      this.bets = this.bets.filter(function (obj) {
+        return obj.addr !== b.addr;
+      });
     this.bets.unshift(b);
 
     console.log("Register for coinflip.StateChanged event for " + b.addr + " ...");

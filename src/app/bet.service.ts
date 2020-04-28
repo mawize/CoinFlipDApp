@@ -7,8 +7,11 @@ declare let require: any;
 
 const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
-const CASINO_CONTRACT_ADDR = '0xCf6e288c65a5e87dC76958077D81323A4876738b';
 
+const CASINO_CONTRACT_ADDR = new Map<string, string>();
+CASINO_CONTRACT_ADDR.set("3", '0xE14434E433d27B95981Db181B0d59B83A696e034');
+CASINO_CONTRACT_ADDR.set("42", '0xbdC58CEB5C03137aC2ce6bfBC271e2e0A4Ac9A89');
+CASINO_CONTRACT_ADDR.set("5777", '0xC430E5e14f9beB5FA4996f0178e758bf3C1b6E40');
 
 @Injectable({
   providedIn: 'root',
@@ -18,24 +21,21 @@ export class BetService {
   public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
-  subscription: Subscription;
-
   constructor(private web3Service: Web3Service) {
-    this.subscription = web3Service.dirty.subscribe(() => {
+    this.subscribeToCasino();
+  }
 
-      if (web3Service.network != 'disconnected') {
-      }
-    });
-
+  private subscribeToCasino() {
     console.log("REGISTER: for casino.GameCreated event ...");
     this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
       .on('data', (e) => {
-        web3Service.getContractData(e.returnValues[0]).then(code => {
+        this.web3Service.getContractData(e.returnValues[0]).then(code => {
           if (code !== '0x') {
             console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
             const b = new Bet(e.returnValues[0]);
-            this.betCreated(b);
+            this.bets.unshift(b);
             this.dirty.next();
+            this.subscribeToCoinFlip(b);
           } else {
             console.log("EVENT: casino.GameCreated - DESTROYED bet found at " + e.returnValues[0]);
           }
@@ -43,8 +43,43 @@ export class BetService {
       });
   }
 
+  private subscribeToCoinFlip(b: Bet) {
+    console.log("REGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
+    const c = this.getCoinFlip(b.addr);
+    c.events.StateChanged({ fromBlock: 0, toBlock: 'latest' })
+      .on('data', (e) => {
+        console.log("EVENT: coinflip.StateChanged - State of bet " + b.addr + " changed to " + e.returnValues[0]);
+        b.state = e.returnValues[0];
+        if (b.state >= 4) {
+          const index = this.bets.indexOf(b, 0);
+          if (index > -1) {
+            this.bets.splice(index, 1);
+          }
+        } else {
+          c.methods.g().call().then(data => {
+            b.amount = this.web3Service.toEther(data.amount)
+            b.balance = this.web3Service.toEther(data.balance);
+            b.value = this.web3Service.toEther(data.value);
+            b.starter = data.starter;
+            b.joiner = data.joiner;
+            b.winner = data.winner;
+            b.heads = data.heads;
+            c.methods.getOwner().call().then(newOwner => {
+              b.owner = newOwner;
+              this.dirty.next();
+            });
+          });
+        }
+      });
+  }
+
+
+  public isNetworkSupported() {
+    return CASINO_CONTRACT_ADDR.has(this.web3Service.network);
+  }
+
   public getContractAddress() {
-    return CASINO_CONTRACT_ADDR;
+    return CASINO_CONTRACT_ADDR.get(this.web3Service.network);
   }
 
   public createBet(betvalue, heads) {
@@ -59,35 +94,6 @@ export class BetService {
       });
   }
 
-  private betCreated(b: Bet) {
-    if (this.bets.find(i => i.addr === b.addr))
-      this.bets = this.bets.filter(function (obj) {
-        return obj.state !== '5' && obj.addr !== b.addr;
-      });
-    this.bets.unshift(b);
-
-    console.log("REGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
-    const c = this.getCoinFlip(b.addr);
-    c.events.StateChanged({ fromBlock: 0, toBlock: 'latest' })
-      .on('data', (e) => {
-        console.log("EVENT: coinflip.StateChanged - State of bet " + b.addr + " changed to " + e.returnValues[0]);
-        b.state = e.returnValues[0];
-        c.methods.g().call().then(data => {
-          b.amount = this.web3Service.toEther(data.amount)
-          b.balance = this.web3Service.toEther(data.balance);
-          b.value = this.web3Service.toEther(data.value);
-          b.starter = data.starter;
-          b.joiner = data.joiner;
-          b.winner = data.winner;
-          b.heads = data.heads;
-          c.methods.getOwner().call().then(newOwner => {
-            b.owner = newOwner;
-            this.dirty.next();
-          });
-        });
-      });
-  }
-
   private handleBeforeReturn(sent: any, contract, name) {
     return sent
       .on("transactionHash", (hash) => {
@@ -95,11 +101,11 @@ export class BetService {
       })
       .on("confirmation", (confirmationNr) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Confirm " + confirmationNr);
-        this.web3Service.updateBalance();
       })
       .on("receipt", async (receipt) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Receipt");
         console.log(receipt);
+        setTimeout(() => this.web3Service.updateBalance(), 1000);
       });
   }
 
@@ -132,7 +138,7 @@ export class BetService {
   }
 
   private getCasino() {
-    return this.web3Service.getContract(CASINO_CONTRACT_ADDR, CASINO_CONTRACT);
+    return this.web3Service.getContract(this.getContractAddress(), CASINO_CONTRACT);
   }
 
   private getCoinFlip(addr: any) {

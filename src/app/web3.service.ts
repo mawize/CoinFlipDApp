@@ -15,6 +15,7 @@ export class Web3Service {
   public account = undefined;
   public accountBalance = undefined;
   public network = undefined;
+  public networkName = undefined;
 
   dirty: Subject<void> = new Subject();
 
@@ -105,9 +106,22 @@ export class Web3Service {
   }
 
   private updateNetwork(network: any) {
+    if (this.network !== undefined)
+      location.reload(); // as long as i dont know how to unsubscribe from events ...
+
     this.network = network;
+
+    switch (this.network) {
+      case '3':
+        this.networkName = 'ropsten';
+        break;
+      case '42':
+        this.networkName = 'kovan';
+        break;
+      default:
+        this.networkName = undefined;
+    }
     console.log("Network changed: " + this.network);
-    this.dirty.next();
   }
 
   public updateBalance() {

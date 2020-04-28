@@ -2,16 +2,16 @@
   <div class="overlay loading" *ngIf="web3Service.network == 'loading'">
     <p>Network is loading ...</p>
   </div>
-  <div class="overlay"
-    *ngIf="web3Service.network != 'loading' && web3Service.network != '3' && web3Service.network != '5777'">
+  <div class="overlay" *ngIf="web3Service.network !== 'loading' && !betService.isNetworkSupported()">
     <p *ngIf="web3Service.network == 'disconnected'">Please use a browser like Brave or MetaMask plugin for
       Chrome/Firefox.</p>
-    <p *ngIf="web3Service.network != 'disconnected'">Only available on ropsten network! Please change network in
+    <p *ngIf="web3Service.network != 'disconnected'">Only available on ropsten and kovan network! Please change network
+      in
       metamask.</p>
   </div>
   <div class="container">
-    <h4><a href="https://ropsten.etherscan.io/address/{{ betService.getContractAddress() }}"
-        target="_blank">{{ betService.getContractAddress() }}</a>&nbsp;<a
+    <h4><a href="https://{{ web3Service.networkName }}.etherscan.io/address/{{ betService.getContractAddress() }}"
+        target="_blank">{{ web3Service.networkName }}://{{ betService.getContractAddress() }}</a>&nbsp;<a
         href="https://github.com/mawize/CoinFlipContract" target="_blank"><img src="/assets/images/github.png"
           style="width: 1em; margin-bottom: 0.25em;"></a></h4>
     <h1 class="display-4">CoinFlipper DApp</h1>
@@ -56,7 +56,7 @@
       </div>
       <div class="betcontainer3-details">
         <div class="title" [ngStyle]="{ 'background-color': colorFromAddr(bet.addr, 0.3)}">
-          <span class="left"><a href="https://ropsten.etherscan.io/address/{{ bet.addr }}"
+          <span class="left"><a href="https://{{ web3Service.networkName }}.etherscan.io/address/{{ bet.addr }}"
               target="_blank">{{ bet.addr }}</a></span>
           <button type="button" name="button" class="btn btn-success right" (click)="betService.joinButtonClicked(bet)"
             *ngIf="bet.state == 0 && !iAmOwner(bet.owner)">Bet

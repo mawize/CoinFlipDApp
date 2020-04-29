@@ -26,7 +26,7 @@ export class BetService {
   }
 
   private subscribeToCasino() {
-    console.log("REGISTER: for casino.GameCreated event ...");
+    console.log("REGISTER: for casino.GameCreated event on " + this.getContractAddress() + "...");
     this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
       .on('data', (e) => {
         this.web3Service.getContractData(e.returnValues[0]).then(code => {

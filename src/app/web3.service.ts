@@ -107,7 +107,7 @@ export class Web3Service {
 
   private updateNetwork(network: any) {
     if (this.network !== undefined)
-      location.reload(); // as long as i dont know how to unsubscribe from events ...
+      location.reload(true); // as long as i dont know how to unsubscribe from events ...
 
     this.network = network;
 

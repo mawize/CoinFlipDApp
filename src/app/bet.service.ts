@@ -115,7 +115,7 @@ export class BetService {
   private handleBeforeReturn(sent: any, contract, name) {
     return sent
       .on("transactionHash", (hash) => {
-        console.log("ACTION: " + contract._address + "." + name + " -> " + hash);
+        console.log("ACTION: " + contract._address + "." + name + " -> Hash:" + hash);
       })
       .on("confirmation", (confirmationNr) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Confirm " + confirmationNr);

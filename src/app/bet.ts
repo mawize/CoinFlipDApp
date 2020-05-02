@@ -7,6 +7,8 @@ export class Bet {
     balance: any;
     amount: any;
     value: any;
+    fees: any;
+    realbalance: any;
 
     starter: any;
     joiner: any;
@@ -20,5 +22,9 @@ export class Bet {
 
     constructor(address: any) {
         this.addr = address;
+    }
+
+    getHeadsResult(): boolean {
+        return this.heads && this.starter === this.winner || !this.heads && this.joiner == this.winner;
     }
 }

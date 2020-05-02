@@ -27,9 +27,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subscription2 = this.web3Service.account.subscribe(() => {
       this.dc.detectChanges();
     })
-    this.subscription3 = this.web3Service.accountBalance.subscribe(() => {
-      this.dc.detectChanges();
-    })
   }
 
   connect(_event) {

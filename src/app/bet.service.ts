@@ -9,9 +9,9 @@ const CASINO_CONTRACT = require('../assets/contracts/Casino.json');
 const COINFLIP_CONTRACT = require('../assets/contracts/CoinFlip.json');
 
 const CASINO_CONTRACT_ADDR = new Map<string, string>();
-CASINO_CONTRACT_ADDR.set("3", '0xE14434E433d27B95981Db181B0d59B83A696e034');
-CASINO_CONTRACT_ADDR.set("42", '0xbdC58CEB5C03137aC2ce6bfBC271e2e0A4Ac9A89');
-CASINO_CONTRACT_ADDR.set("5777", '0xC430E5e14f9beB5FA4996f0178e758bf3C1b6E40');
+CASINO_CONTRACT_ADDR.set("3", '0x3083c308b31C3a0D72a8C78B6dDAa43c2A6fa5b0');
+CASINO_CONTRACT_ADDR.set("42", '0x83f6492a84e2D89A1848De372802EBf675Aa956D');
+//CASINO_CONTRACT_ADDR.set("5777", '0xda40008eFb81AA382Bc4FaBBf7463585a201A5EA');
 
 @Injectable({
   providedIn: 'root',
@@ -21,18 +21,23 @@ export class BetService {
   public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
+  balance: any;
   private casinoSubscription: Subscription;
 
   constructor(private web3Service: Web3Service) {
     web3Service.network.subscribe(newNetwork => {
-      this.bets.forEach(b => {
-        console.log("UNREGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
-        b.subscription.unsubscribe();
-      });
+      this.bets.forEach(b => this.unsubscribeFromCoinFlip(b));
       this.bets = [];
       this.unsubscribeFromCasino();
       this.subscribeToCasino();
       this.dirty.next();
+    });
+    web3Service.account.subscribe(newAccount => {
+      if (newAccount)
+        web3Service.getBalance(newAccount).then(data => {
+          this.balance = web3Service.toEther(data);
+          this.dirty.next();
+        });
     });
   }
 
@@ -73,22 +78,36 @@ export class BetService {
           if (index > -1) {
             this.bets.splice(index, 1);
           }
+          console.log("Bet " + b.addr + " removed.");
+          this.dirty.next();
         } else {
           contract.methods.g().call().then(data => {
             b.amount = this.web3Service.toEther(data.amount)
             b.balance = this.web3Service.toEther(data.balance);
             b.value = this.web3Service.toEther(data.value);
+            b.fees = this.web3Service.toEther(data.fees);
             b.starter = data.starter;
             b.joiner = data.joiner;
             b.winner = data.winner;
             b.heads = data.heads;
             contract.methods.getOwner().call().then(newOwner => {
               b.owner = newOwner;
+              this.web3Service.getBalance(b.addr).then(data => {
+                b.realbalance = this.web3Service.toEther(data);
+                this.dirty.next();
+              });
               this.dirty.next();
             });
+            this.dirty.next();
           });
         }
       });
+  }
+
+  private unsubscribeFromCoinFlip(b: Bet) {
+    console.log("UNREGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
+    b.subscription.unsubscribe();
+    b.subscription = undefined;
   }
 
   public isNetworkSupported() {
@@ -104,26 +123,24 @@ export class BetService {
     this.getCasino().then(contract => {
       const config = this.web3Service.etherConfig(betvalue);
       const sent = contract.methods.createCoinFlip(heads).send(config);
-      return this.handleBeforeReturn(sent, contract, "createCoinFlip")
-        .catch((err) => {
-          console.warn("Error placing bet: ");
-          console.warn(err);
-        });
+      return this.handleBeforeReturn(sent, contract, "createCoinFlip");
     });
   }
 
   private handleBeforeReturn(sent: any, contract, name) {
     return sent
       .on("transactionHash", (hash) => {
-        console.log("ACTION: " + contract._address + "." + name + " -> Hash:" + hash);
+        console.log("ACTION: " + contract._address + "." + name + " -> Hash " + hash);
       })
       .on("confirmation", (confirmationNr) => {
-        console.log("ACTION: " + contract._address + "." + name + " -> Confirm " + confirmationNr);
+        console.log("ACTION: " + contract._address + "." + name + " -> Confirmed " + confirmationNr);
       })
       .on("receipt", async (receipt) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Receipt");
         console.log(receipt);
-        setTimeout(() => this.web3Service.updateBalance(), 1000);
+      })
+      .catch((err) => {
+        console.warn("ACTION: " + contract._address + "." + name + " -> " + err.message);
       });
   }
 

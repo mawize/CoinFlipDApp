@@ -13,10 +13,8 @@ export class Web3Service {
   private _provider: any;
 
   public account = new BehaviorSubject<any>(undefined);
-  public accountBalance = new BehaviorSubject<any>(undefined);
-
-  public networkName = undefined;
   public network = new BehaviorSubject<any>(undefined);
+  public networkName = undefined;
 
   constructor() {
     if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
@@ -57,7 +55,7 @@ export class Web3Service {
   }
 
   public toEther(weiamount) {
-    return Web3.utils.fromWei(weiamount, "ether")
+    return weiamount ? Web3.utils.fromWei(weiamount, "ether") : undefined;
   }
 
   public defaultConfig() {
@@ -101,7 +99,6 @@ export class Web3Service {
     if (accounts != undefined && typeof accounts[0] != undefined) {
       this.account.next(accounts[0]);
       console.log("Account changed: " + this.account.value);
-      this.updateBalance();
     } else {
       this.account.next(undefined);
       console.warn("Account disconnected");
@@ -123,11 +120,11 @@ export class Web3Service {
     console.log("Network changed: " + this.network.value);
   }
 
-  public updateBalance() {
-    this._web3.eth.getBalance(this.account.value).then(data => {
-      this.accountBalance.next(this.toEther(data));
-      console.log("Balance updated: " + this.accountBalance.value);
+  public getBalance(addr) {
+    return this._web3.eth.getBalance(addr).then(data => {
+      console.log("Balance of '" + addr + "': " + this.toEther(data));
+      return data;
     })
-      .catch(e => this.onError('getBalance() for ' + this.account.value));
+      .catch(e => this.onError('getBalance() for ' + addr));
   }
 }

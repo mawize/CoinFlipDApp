@@ -18,7 +18,7 @@
     <h1 class="display-4">CoinFlipper DApp</h1>
     <h2 *ngIf="web3Service.account.value">Flip the coin ...</h2>
     <div *ngIf="web3Service.account.value" style="text-align: right;">
-      <p class="lead">{{ web3Service.accountBalance.value }} Ether</p>
+      <p class="lead">{{ betService.balance }} Ether</p>
       <img src="https://robohash.org/{{ web3Service.account.value.toLowerCase() }}" width="150"
         title="{{ web3Service.account.value }}" style="float: right; border-radius: 50%;"
         [ngStyle]="{ 'background-color': colorFromAddr(web3Service.account.value.toLowerCase(), 0.3)}">
@@ -51,8 +51,10 @@
           <div class="side-a"></div>
           <div class="side-b"></div>
         </div>
-        <div *ngIf="bet.state != 1"><img src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png"
-            title="{{ bet.heads ? 'heads' : 'tails'}}"></div>
+        <div *ngIf="bet.state == 0"><img src="/assets/images/{{ bet.heads ? 'tails' : 'heads'}}.png"
+            title="{{ bet.heads ? 'Bet on tails' : 'Bet on heads'}}"></div>
+        <div *ngIf="bet.state > 1"><img src="/assets/images/{{ bet.getHeadsResult() ? 'heads' : 'tails'}}.png"
+            title="{{ bet.getHeadsResult() ? 'heads' : 'tails'}}"></div>
 
       </div>
       <div class="betcontainer3-details">
@@ -104,16 +106,18 @@
         </div>
         <div class="time-right">{{ bet.state > 0 ? bet.value : bet.balance }} Ether</div>
       </div>
-      <!--
-      <div>
-        <span>Owner: {{ bet.owner }}</span><br />
+      <div><br />
         <span>State: {{ bet.state }}</span><br />
+        <span>Owner: {{ bet.owner }}</span><br />
         <span>Starter: {{ bet.starter }}</span><br />
         <span>Joiner: {{ bet.joiner }}</span><br />
+        <span>Winner: {{ bet.winner }}</span><br />
         <span>Amount: {{ bet.amount }}</span><br />
         <span>Value: {{ bet.value }}</span><br />
-        <span>Winner: {{ bet.winner }}</span>
-    </div>
+        <span>Fees: {{ bet.fees }}</span><br />
+        <span>Balance: {{ bet.balance }} <b>({{ bet.realbalance }})</b></span>
+      </div>
+      <!--
                 // 0 = 'open'
                 // 1 = 'closed'
                 // 2 = 'claimed'

@@ -81,18 +81,16 @@ export class Web3Service {
   }
 
   public getContract(addr, artefact): any {
-    if (addr != undefined) {
-      console.log("Checking '" + addr + "' for data ...");
-      return this._web3.eth.getCode(addr).then(code => {
-        if (code !== '0x') {
-          console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
-          return new this._web3.eth.Contract(artefact.abi, addr, this.defaultConfig())
-        } else {
-          console.error("Data of contract '" + artefact.contractName + "' at '" + addr + "' is 0x");
-        }
-      });
-    } else
-      console.error("Cannot get contract at '" + addr + "'");
+    console.log("Checking '" + addr + "' for data ...");
+    return this._web3.eth.getCode(addr).then(code => {
+      if (code !== '0x') {
+        console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
+        return new this._web3.eth.Contract(artefact.abi, addr, this.defaultConfig());
+      } else {
+        console.warn("Data of contract '" + artefact.contractName + "' at '" + addr + "' is 0x");
+        return undefined;
+      }
+    });
   }
 
   public hasData(addr) {

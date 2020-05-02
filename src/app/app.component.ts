@@ -34,7 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   iAmOwner(owner: string) {
-    return owner != undefined && this.web3Service.account.value != undefined && this.web3Service.account.value.toLowerCase() === owner.toLowerCase();
+    return this.web3Service.account.value.toLowerCase() === owner.toLowerCase();
   }
 
   ngOnDestroy(): void {

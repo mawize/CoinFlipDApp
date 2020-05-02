@@ -6,9 +6,7 @@
     <p *ngIf="web3Service.network.value == 'disconnected'">Please use a browser like Brave or MetaMask plugin for
       Chrome/Firefox.</p>
     <p *ngIf="web3Service.network.value != 'disconnected'">Only available on ropsten and kovan network! Please change
-      network
-      in
-      metamask.</p>
+      network in metamask.</p>
   </div>
   <div class="container">
     <h4><a href="https://{{ web3Service.networkName }}.etherscan.io/address/{{ betService.getContractAddress() }}"
@@ -35,7 +33,8 @@
         <div class="side-b"></div>
       </div>
       <input [(ngModel)]="betinputvalue" type="number" class="form-control" id="betinputvalue"
-        placeholder="I love ether!" (change)="valuechanged($event)">
+        placeholder="I love ether!" (change)="valuechanged($event)" min="0.01" step="0.005"
+        (keyup.enter)="flipButtonClicked($event)">
       <span class="input-group-btn">
         <button type="button" id="flip_button" class="btn btn-primary" (click)="flipButtonClicked($event)">Create
           Bet</button>
@@ -45,64 +44,70 @@
   <div *ngIf="betService.bets.length">
 
     <h2>Bets {{betService.bets.length}}</h2>
-    <div *ngFor="let bet of betService.bets" class="betcontainer3">
-      <div class="betcontainer3-coin">
-        <div *ngIf="bet.state == 1" id="minicoin-bet" [ngClass]="{'flipping': bet.state == 1}">
-          <div class="side-a"></div>
-          <div class="side-b"></div>
+    <div *ngFor="let bet of betService.bets">
+      <div class="betcontainer3" *ngIf="bet.owner">
+        <div class="betcontainer3-coin">
+          <div *ngIf="bet.state == 1" id="minicoin-bet" [ngClass]="{'flipping': bet.state == 1}">
+            <div class="side-a"></div>
+            <div class="side-b"></div>
+          </div>
+          <div *ngIf="bet.state == 0 && iAmOwner(bet.owner) "><img
+              src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png"
+              title="You are betting on {{ bet.heads ? 'heads' : 'tails'}}!"></div>
+          <div *ngIf="bet.state == 0 && !iAmOwner(bet.owner) "><img
+              src="/assets/images/{{ !bet.heads ? 'heads' : 'tails'}}.png"
+              title="Do you want to bet on {{ !bet.heads ? 'heads' : 'tails'}}?"></div>
+          <div *ngIf="bet.state > 1"><img src="/assets/images/{{ bet.getHeadsResult() ? 'heads' : 'tails'}}.png"
+              title="Result: {{ bet.getHeadsResult() ? 'heads' : 'tails'}}"></div>
+
         </div>
-        <div *ngIf="bet.state == 0"><img src="/assets/images/{{ bet.heads ? 'tails' : 'heads'}}.png"
-            title="{{ bet.heads ? 'Bet on tails' : 'Bet on heads'}}"></div>
-        <div *ngIf="bet.state > 1"><img src="/assets/images/{{ bet.getHeadsResult() ? 'heads' : 'tails'}}.png"
-            title="{{ bet.getHeadsResult() ? 'heads' : 'tails'}}"></div>
+        <div class="betcontainer3-details">
+          <div class="title" [ngStyle]="{ 'background-color': colorFromAddr(bet.addr, 0.3)}">
+            <span class="left"><a href="https://{{ web3Service.networkName }}.etherscan.io/address/{{ bet.addr }}"
+                target="_blank">{{ bet.addr }}</a></span>
+            <button type="button" name="button" class="btn btn-success right"
+              (click)="betService.joinButtonClicked(bet)" *ngIf="bet.state == 0 && !iAmOwner(bet.owner)">Bet
+              {{ bet.amount }} Ether</button>
+            <button type="button" name="button" class="btn btn-danger right"
+              (click)="betService.cancelButtonClicked(bet)" *ngIf="bet.state == 0 && iAmOwner(bet.owner)">Cancel
+              Bet</button>
+            <button type="button" name="button" class="btn btn-success right"
+              (click)="betService.claimButtonClicked(bet)" *ngIf="bet.state == 2 && iAmOwner(bet.owner)">Claim
+              {{ bet.value }} Ether</button>
+            <button type="button" name="button" class="btn btn-success right"
+              (click)="betService.collectButtonClicked(bet)" *ngIf="bet.state == 3 && iAmOwner(bet.owner)">Collect
+              {{ bet.balance }} Ether</button>
+          </div>
 
-      </div>
-      <div class="betcontainer3-details">
-        <div class="title" [ngStyle]="{ 'background-color': colorFromAddr(bet.addr, 0.3)}">
-          <span class="left"><a href="https://{{ web3Service.networkName }}.etherscan.io/address/{{ bet.addr }}"
-              target="_blank">{{ bet.addr }}</a></span>
-          <button type="button" name="button" class="btn btn-success right" (click)="betService.joinButtonClicked(bet)"
-            *ngIf="bet.state == 0 && !iAmOwner(bet.owner)">Bet
-            {{ bet.amount }} Ether</button>
-          <button type="button" name="button" class="btn btn-danger right" (click)="betService.cancelButtonClicked(bet)"
-            *ngIf="bet.state == 0 && iAmOwner(bet.owner)">Cancel Bet</button>
-          <button type="button" name="button" class="btn btn-success right" (click)="betService.claimButtonClicked(bet)"
-            *ngIf="bet.state == 2 && iAmOwner(bet.owner)">Claim
-            {{ bet.value }} Ether</button>
-          <button type="button" name="button" class="btn btn-success right"
-            (click)="betService.collectButtonClicked(bet)" *ngIf="bet.state == 3 && iAmOwner(bet.owner)">Collect
-            {{ bet.balance }} Ether</button>
+          <div class="text" *ngIf="bet.state == 0 && bet.starter"> <img
+              src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> wants to
+            bet {{bet.amount}} Ether on
+            <img src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
+          </div>
+
+          <div class="text" *ngIf="bet.state == 1 && bet.joiner"> The coin is spinning for the bet by <img
+              src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> on <img
+              src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
+            against <img src="https://robohash.org/{{ bet.joiner.toLowerCase() }}" title="{{ bet.joiner }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.joiner.toLowerCase(), 0.3)}">
+          </div>
+
+          <div class="text" *ngIf="bet.state > 1 "> This bet by <img
+              src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> on <img
+              src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
+            against <img src="https://robohash.org/{{ bet.joiner.toLowerCase() }}" title="{{ bet.joiner }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.joiner.toLowerCase(), 0.3)}"> was won by <img
+              src="https://robohash.org/{{ bet.winner.toLowerCase() }}" title="{{ bet.winner }}"
+              [ngStyle]="{ 'background-color': colorFromAddr(bet.winner.toLowerCase(), 0.3)}">
+          </div>
+
         </div>
+        <div class="time-right">{{ bet.value }} Ether</div>
 
-        <div class="text" *ngIf="bet.state == 0 && bet.starter"> <img
-            src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> wants to
-          bet {{bet.amount}} Ether on
-          <img src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
-        </div>
-
-        <div class="text" *ngIf="bet.state == 1"> The coin is spinning for the bet by <img
-            src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> on <img
-            src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
-          against <img src="https://robohash.org/{{ bet.joiner.toLowerCase() }}" title="{{ bet.joiner }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.joiner.toLowerCase(), 0.3)}">
-        </div>
-
-        <div class="text" *ngIf="bet.state > 1 && bet.state != 5 "> This bet by <img
-            src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}"> on <img
-            src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}">
-          against <img src="https://robohash.org/{{ bet.joiner.toLowerCase() }}" title="{{ bet.joiner }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.joiner.toLowerCase(), 0.3)}"> was won by <img
-            src="https://robohash.org/{{ bet.winner.toLowerCase() }}" title="{{ bet.winner }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.winner.toLowerCase(), 0.3)}">
-        </div>
-
-      </div>
-      <div class="time-right">{{ bet.state > 0 ? bet.value : bet.balance }} Ether</div>
-
-      <!--<div><br />
+        <!--<div><br />
         <span>State: {{ bet.state }}</span><br />
         <span>Owner: {{ bet.owner }}</span><br />
         <span>Starter: {{ bet.starter }}</span><br />
@@ -118,6 +123,7 @@
                 // 2 = 'claimed'
                 // 3 = 'done'
             -->
+      </div>
     </div>
   </div>
 </div>

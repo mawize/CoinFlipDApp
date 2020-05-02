@@ -51,7 +51,6 @@ export class BetService {
               return;
             console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
             const b = new Bet(e.returnValues[0]);
-            this.bets.unshift(b);
             this.subscribeToCoinFlip(b, contract);
             this.dirty.next();
           });
@@ -81,6 +80,8 @@ export class BetService {
           console.log("Bet " + b.addr + " removed.");
           this.dirty.next();
         } else {
+          if (!this.bets.find(ele => ele.addr === b.addr))
+            this.bets.unshift(b);
           contract.methods.g().call().then(data => {
             b.amount = this.web3Service.toEther(data.amount)
             b.balance = this.web3Service.toEther(data.balance);
@@ -92,13 +93,12 @@ export class BetService {
             b.heads = data.heads;
             contract.methods.getOwner().call().then(newOwner => {
               b.owner = newOwner;
-              this.web3Service.getBalance(b.addr).then(data => {
+              /*this.web3Service.getBalance(b.addr).then(data => {
                 b.realbalance = this.web3Service.toEther(data);
                 this.dirty.next();
-              });
+              });*/
               this.dirty.next();
             });
-            this.dirty.next();
           });
         }
       });
@@ -132,8 +132,12 @@ export class BetService {
       .on("transactionHash", (hash) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Hash " + hash);
       })
-      .on("confirmation", (confirmationNr) => {
+      .once("confirmation", (confirmationNr) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Confirmed " + confirmationNr);
+        this.web3Service.getBalance(this.web3Service.account.value).then(data => {
+          this.balance = this.web3Service.toEther(data);
+          this.dirty.next();
+        });
       })
       .on("receipt", async (receipt) => {
         console.log("ACTION: " + contract._address + "." + name + " -> Receipt");

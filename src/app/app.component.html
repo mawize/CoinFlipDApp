@@ -99,14 +99,10 @@
             [ngStyle]="{ 'background-color': colorFromAddr(bet.winner.toLowerCase(), 0.3)}">
         </div>
 
-        <div class="text" *ngIf="bet.state == 5"> This bet on <img
-            src="/assets/images/{{ bet.heads ? 'heads' : 'tails'}}.png" title="{{ bet.heads ? 'heads' : 'tails'}}"> was
-          canceled by <img src="https://robohash.org/{{ bet.starter.toLowerCase() }}" title="{{ bet.starter }}"
-            [ngStyle]="{ 'background-color': colorFromAddr(bet.starter.toLowerCase(), 0.3)}">
-        </div>
-        <div class="time-right">{{ bet.state > 0 ? bet.value : bet.balance }} Ether</div>
       </div>
-      <div><br />
+      <div class="time-right">{{ bet.state > 0 ? bet.value : bet.balance }} Ether</div>
+
+      <!--<div><br />
         <span>State: {{ bet.state }}</span><br />
         <span>Owner: {{ bet.owner }}</span><br />
         <span>Starter: {{ bet.starter }}</span><br />
@@ -117,13 +113,11 @@
         <span>Fees: {{ bet.fees }}</span><br />
         <span>Balance: {{ bet.balance }} <b>({{ bet.realbalance }})</b></span>
       </div>
-      <!--
                 // 0 = 'open'
                 // 1 = 'closed'
                 // 2 = 'claimed'
                 // 3 = 'done'
             -->
-
     </div>
   </div>
 </div>

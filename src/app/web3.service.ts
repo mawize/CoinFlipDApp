@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, Subject } from 'rxjs';
+import { Observable, from, Subject, BehaviorSubject } from 'rxjs';
 const Web3 = require('web3'); // tslint:disable-line
 
 declare let require: any;
@@ -12,12 +12,11 @@ export class Web3Service {
   private _web3: any;
   private _provider: any;
 
-  public account = undefined;
-  public accountBalance = undefined;
-  public network = undefined;
-  public networkName = undefined;
+  public account = new BehaviorSubject<any>(undefined);
+  public accountBalance = new BehaviorSubject<any>(undefined);
 
-  dirty: Subject<void> = new Subject();
+  public networkName = undefined;
+  public network = new BehaviorSubject<any>(undefined);
 
   constructor() {
     if (typeof window !== 'undefined' && typeof window.web3 !== 'undefined') {
@@ -63,7 +62,7 @@ export class Web3Service {
 
   public defaultConfig() {
     return {
-      from: this.account
+      from: this.account.value
     };
   }
 
@@ -74,7 +73,7 @@ export class Web3Service {
       etheramount = etheramount.replace(/,/g, '');
 
     return {
-      from: this.account,
+      from: this.account.value,
       gasLimit: this._web3.eth.getBlock("latest").gasLimit,
       gasPrice: this._web3.eth.gasPrice,
       value: Web3.utils.toWei(etheramount, "ether")
@@ -82,36 +81,37 @@ export class Web3Service {
   }
 
   public getContract(addr, artefact): any {
-    //console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
-    if (this.getContractData(addr) === '0x')
-      console.error("Cannot get contract '" + artefact.contractName + "' from '" + addr + "'");
-    else
-      return new this._web3.eth.Contract(artefact.abi, addr, this.defaultConfig());
+    if (addr != undefined) {
+      console.log("Checking '" + addr + "' for data ...");
+      return this._web3.eth.getCode(addr).then(code => {
+        if (code !== '0x') {
+          console.log("Getting contract '" + artefact.contractName + "' from '" + addr + "' ...");
+          return new this._web3.eth.Contract(artefact.abi, addr, this.defaultConfig())
+        } else {
+          console.error("Data of contract '" + artefact.contractName + "' at '" + addr + "' is 0x");
+        }
+      });
+    } else
+      console.error("Cannot get contract at '" + addr + "'");
   }
 
-  public getContractData(addr) {
-    return this._web3.eth.getCode(addr);
+  public hasData(addr) {
+    return this._web3.eth.getCode(addr) !== '0x';
   }
 
   private updateAccount(accounts) {
     if (accounts != undefined && typeof accounts[0] != undefined) {
-      this.account = accounts[0];
-      console.log("Account changed: " + this.account);
+      this.account.next(accounts[0]);
+      console.log("Account changed: " + this.account.value);
       this.updateBalance();
     } else {
-      this.account = undefined;
+      this.account.next(undefined);
       console.warn("Account disconnected");
     }
-    this.dirty.next();
   }
 
   private updateNetwork(network: any) {
-    if (this.network !== undefined)
-      location.reload(true); // as long as i dont know how to unsubscribe from events ...
-
-    this.network = network;
-
-    switch (this.network) {
+    switch (network) {
       case '3':
         this.networkName = 'ropsten';
         break;
@@ -121,15 +121,15 @@ export class Web3Service {
       default:
         this.networkName = undefined;
     }
-    console.log("Network changed: " + this.network);
+    this.network.next(network);
+    console.log("Network changed: " + this.network.value);
   }
 
   public updateBalance() {
-    this._web3.eth.getBalance(this.account).then(data => {
-      this.accountBalance = this.toEther(data);
-      console.log("Balance updated: " + this.accountBalance);
-      this.dirty.next();
+    this._web3.eth.getBalance(this.account.value).then(data => {
+      this.accountBalance.next(this.toEther(data));
+      console.log("Balance updated: " + this.accountBalance.value);
     })
-      .catch(e => this.onError('getBalance() for ' + this.account));
+      .catch(e => this.onError('getBalance() for ' + this.account.value));
   }
 }

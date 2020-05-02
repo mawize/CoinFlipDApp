@@ -21,77 +21,95 @@ export class BetService {
   public bets: Bet[] = [];
   dirty: Subject<void> = new Subject();
 
+  private casinoSubscription: Subscription;
+
   constructor(private web3Service: Web3Service) {
-    this.subscribeToCasino();
+    web3Service.network.subscribe(newNetwork => {
+      this.bets.forEach(b => {
+        console.log("UNREGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
+        b.subscription.unsubscribe();
+      });
+      this.bets = [];
+      this.unsubscribeFromCasino();
+      this.subscribeToCasino();
+      this.dirty.next();
+    });
   }
 
   private subscribeToCasino() {
-    console.log("REGISTER: for casino.GameCreated event on " + this.getContractAddress() + "...");
-    this.getCasino().events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
-      .on('data', (e) => {
-        this.web3Service.getContractData(e.returnValues[0]).then(code => {
-          if (code !== '0x') {
-            console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
-            const b = new Bet(e.returnValues[0]);
-            this.bets.unshift(b);
-            this.dirty.next();
-            this.subscribeToCoinFlip(b);
-          } else {
-            console.log("EVENT: casino.GameCreated - DESTROYED bet found at " + e.returnValues[0]);
-          }
-        })
-      });
+    this.getCasino().then(contract => {
+      console.log("REGISTER: for casino.GameCreated event on " + this.getContractAddress() + "...");
+      this.casinoSubscription = contract.events.GameCreated({ fromBlock: 0, toBlock: 'latest' })
+        .on('data', e => {
+          console.log("EVENT: casino.GameCreated - Bet found at " + e.returnValues[0]);
+          const b = new Bet(e.returnValues[0]);
+          this.bets.unshift(b);
+          this.subscribeToCoinFlip(b);
+          this.dirty.next();
+        });
+
+    });
+  }
+
+  private unsubscribeFromCasino() {
+    if (this.casinoSubscription) {
+      console.log("UNREGISTER: from casino.GameCreated event on " + this.getContractAddress() + "...");
+      this.casinoSubscription.unsubscribe();
+      this.casinoSubscription = undefined;
+    }
   }
 
   private subscribeToCoinFlip(b: Bet) {
-    console.log("REGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
-    const c = this.getCoinFlip(b.addr);
-    c.events.StateChanged({ fromBlock: 0, toBlock: 'latest' })
-      .on('data', (e) => {
-        console.log("EVENT: coinflip.StateChanged - State of bet " + b.addr + " changed to " + e.returnValues[0]);
-        b.state = e.returnValues[0];
-        if (b.state >= 4) {
-          const index = this.bets.indexOf(b, 0);
-          if (index > -1) {
-            this.bets.splice(index, 1);
-          }
-        } else {
-          c.methods.g().call().then(data => {
-            b.amount = this.web3Service.toEther(data.amount)
-            b.balance = this.web3Service.toEther(data.balance);
-            b.value = this.web3Service.toEther(data.value);
-            b.starter = data.starter;
-            b.joiner = data.joiner;
-            b.winner = data.winner;
-            b.heads = data.heads;
-            c.methods.getOwner().call().then(newOwner => {
-              b.owner = newOwner;
-              this.dirty.next();
+    this.getCoinFlip(b.addr).then(contract => {
+      console.log("REGISTER: for coinflip.StateChanged event on " + b.addr + " ...");
+      b.subscription = contract.events.StateChanged({ fromBlock: 0, toBlock: 'latest' })
+        .on('data', (e) => {
+          console.log("EVENT: coinflip.StateChanged - State of bet " + b.addr + " changed to " + e.returnValues[0]);
+          b.state = e.returnValues[0];
+          if (b.state >= 4) {
+            const index = this.bets.indexOf(b, 0);
+            if (index > -1) {
+              this.bets.splice(index, 1);
+            }
+          } else {
+            contract.methods.g().call().then(data => {
+              b.amount = this.web3Service.toEther(data.amount)
+              b.balance = this.web3Service.toEther(data.balance);
+              b.value = this.web3Service.toEther(data.value);
+              b.starter = data.starter;
+              b.joiner = data.joiner;
+              b.winner = data.winner;
+              b.heads = data.heads;
+              contract.methods.getOwner().call().then(newOwner => {
+                b.owner = newOwner;
+                this.dirty.next();
+              });
             });
-          });
-        }
-      });
+          }
+        });
+    });
   }
 
 
   public isNetworkSupported() {
-    return CASINO_CONTRACT_ADDR.has(this.web3Service.network);
+    return CASINO_CONTRACT_ADDR.has(this.web3Service.network.value);
   }
 
   public getContractAddress() {
-    return CASINO_CONTRACT_ADDR.get(this.web3Service.network);
+    return CASINO_CONTRACT_ADDR.get(this.web3Service.network.value);
   }
 
   public createBet(betvalue, heads) {
     console.log("Creating CoinFlip Bet with " + betvalue + " wei ...");
-    const contract = this.getCasino();
-    const config = this.web3Service.etherConfig(betvalue);
-    const sent = contract.methods.createCoinFlip(heads).send(config);
-    return this.handleBeforeReturn(sent, contract, "createCoinFlip")
-      .catch((err) => {
-        console.warn("Error placing bet: ");
-        console.warn(err);
-      });
+    this.getCasino().then(contract => {
+      const config = this.web3Service.etherConfig(betvalue);
+      const sent = contract.methods.createCoinFlip(heads).send(config);
+      return this.handleBeforeReturn(sent, contract, "createCoinFlip")
+        .catch((err) => {
+          console.warn("Error placing bet: ");
+          console.warn(err);
+        });
+    });
   }
 
   private handleBeforeReturn(sent: any, contract, name) {
@@ -111,30 +129,26 @@ export class BetService {
 
   public joinButtonClicked(b: Bet) {
     const config = this.web3Service.etherConfig(b.amount);
-    const contract = this.getCoinFlip(b.addr);
-    const sent = contract.methods.join().send(config);
-    return this.handleBeforeReturn(sent, contract, "join");
+    this.getCoinFlip(b.addr)
+      .then(contract => this.handleBeforeReturn(contract.methods.join().send(config), contract, "join"));
   }
 
   public cancelButtonClicked(b: Bet) {
     const config = this.web3Service.defaultConfig();
-    const contract = this.getCoinFlip(b.addr);
-    const sent = contract.methods.cancel().send(config);
-    return this.handleBeforeReturn(sent, contract, "cancel");
+    this.getCoinFlip(b.addr)
+      .then(contract => this.handleBeforeReturn(contract.methods.cancel().send(config), contract, "cancel"));
   }
 
   public claimButtonClicked(b: Bet) {
     const config = this.web3Service.defaultConfig();
-    const contract = this.getCoinFlip(b.addr);
-    const sent = contract.methods.claim().send(config);
-    return this.handleBeforeReturn(sent, contract, "claim");
+    this.getCoinFlip(b.addr)
+      .then(contract => this.handleBeforeReturn(contract.methods.claim().send(config), contract, "claim"));
   }
 
   public collectButtonClicked(b: Bet) {
     const config = this.web3Service.defaultConfig();
-    const contract = this.getCoinFlip(b.addr);
-    const sent = contract.methods.collect().send(config);
-    return this.handleBeforeReturn(sent, contract, "collect");
+    this.getCoinFlip(b.addr)
+      .then(contract => this.handleBeforeReturn(contract.methods.collect().send(config), contract, "collect"));
   }
 
   private getCasino() {

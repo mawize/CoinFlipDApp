@@ -16,6 +16,7 @@ export class AppComponent implements OnInit, OnDestroy {
   bet = "tails";
   subscription: Subscription;
   subscription2: Subscription;
+  subscription3: Subscription;
 
   constructor(public web3Service: Web3Service, private dc: ChangeDetectorRef, public betService: BetService) { }
 
@@ -23,7 +24,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subscription = this.betService.dirty.subscribe(() => {
       this.dc.detectChanges();
     })
-    this.subscription2 = this.web3Service.dirty.subscribe(() => {
+    this.subscription2 = this.web3Service.account.subscribe(() => {
+      this.dc.detectChanges();
+    })
+    this.subscription3 = this.web3Service.accountBalance.subscribe(() => {
       this.dc.detectChanges();
     })
   }
@@ -33,12 +37,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   iAmOwner(owner: string) {
-    return owner != undefined && this.web3Service.account != undefined && this.web3Service.account.toLowerCase() === owner.toLowerCase();
+    return owner != undefined && this.web3Service.account.value != undefined && this.web3Service.account.value.toLowerCase() === owner.toLowerCase();
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.subscription2.unsubscribe();
+    this.subscription3.unsubscribe();
   }
 
   minicoinClicked(e) {

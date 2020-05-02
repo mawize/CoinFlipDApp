@@ -1,3 +1,5 @@
+import { Subscription } from 'rxjs';
+
 export class Bet {
 
     addr: any;
@@ -13,6 +15,8 @@ export class Bet {
 
     state: any;
     heads: any;
+
+    subscription: Subscription;
 
     constructor(address: any) {
         this.addr = address;

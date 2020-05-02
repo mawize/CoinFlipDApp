@@ -1,11 +1,12 @@
 <div class="jumbotron jumbotron-fluid">
-  <div class="overlay loading" *ngIf="web3Service.network == 'loading'">
+  <div class="overlay loading" *ngIf="web3Service.network.value == 'loading'">
     <p>Network is loading ...</p>
   </div>
-  <div class="overlay" *ngIf="web3Service.network !== 'loading' && !betService.isNetworkSupported()">
-    <p *ngIf="web3Service.network == 'disconnected'">Please use a browser like Brave or MetaMask plugin for
+  <div class="overlay" *ngIf="web3Service.network.value !== 'loading' && !betService.isNetworkSupported()">
+    <p *ngIf="web3Service.network.value == 'disconnected'">Please use a browser like Brave or MetaMask plugin for
       Chrome/Firefox.</p>
-    <p *ngIf="web3Service.network != 'disconnected'">Only available on ropsten and kovan network! Please change network
+    <p *ngIf="web3Service.network.value != 'disconnected'">Only available on ropsten and kovan network! Please change
+      network
       in
       metamask.</p>
   </div>
@@ -15,18 +16,18 @@
         href="https://github.com/mawize/CoinFlipContract" target="_blank"><img src="/assets/images/github.png"
           style="width: 1em; margin-bottom: 0.25em;"></a></h4>
     <h1 class="display-4">CoinFlipper DApp</h1>
-    <h2 *ngIf="web3Service.account">Flip the coin ...</h2>
-    <div *ngIf="web3Service.account" style="text-align: right;">
-      <p class="lead">{{ web3Service.accountBalance }} Ether</p>
-      <img src="https://robohash.org/{{ web3Service.account.toLowerCase() }}" width="150"
-        title="{{ web3Service.account }}" style="float: right; border-radius: 50%;"
-        [ngStyle]="{ 'background-color': colorFromAddr(web3Service.account.toLowerCase(), 0.3)}">
+    <h2 *ngIf="web3Service.account.value">Flip the coin ...</h2>
+    <div *ngIf="web3Service.account.value" style="text-align: right;">
+      <p class="lead">{{ web3Service.accountBalance.value }} Ether</p>
+      <img src="https://robohash.org/{{ web3Service.account.value.toLowerCase() }}" width="150"
+        title="{{ web3Service.account.value }}" style="float: right; border-radius: 50%;"
+        [ngStyle]="{ 'background-color': colorFromAddr(web3Service.account.value.toLowerCase(), 0.3)}">
     </div>
     <button type="button" id="connect" class="btn btn-success" (click)="connect($event)"
-      *ngIf="!web3Service.account && web3Service.network != 'loading'">Connect!</button>
+      *ngIf="!web3Service.account.value && web3Service.network.value != 'loading'">Connect!</button>
   </div>
 </div>
-<div class="container" *ngIf="web3Service.account">
+<div class="container" *ngIf="web3Service.account.value">
   <div>
     <div id="bet_container" class="input-group">
       <div id="minicoin" (click)="minicoinClicked($event)">
